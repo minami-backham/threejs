@@ -1,6 +1,7 @@
-void main() {
-  vec3 pos = position;
+varying vec2 vUv;
 
-  pos.y = (pos.y * 0.5) + sin(pos.x * 100.0) * 100.0;
-   gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+void main() {
+  vUv = uv;
+
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }

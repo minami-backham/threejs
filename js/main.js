@@ -29,7 +29,7 @@ function init(vs, fs) {
 
   // カメラを作成
   let camera = new THREE.PerspectiveCamera(45, width / height);
-  camera.position.set(0, 0, +800);
+  camera.position.set(0, 0, +500);
 
   // 箱を作成
   // const geometry = new THREE.BoxGeometry(400, 400, 400);
@@ -37,12 +37,22 @@ function init(vs, fs) {
   // const box = new THREE.Mesh(geometry, material);
   // scene.add(box);
 
-  let geometry = new THREE.PlaneGeometry(720, 500, 10, 10);
+  let uniforms = {
+    uAspect: {
+      value: width / height
+    },
+    uTime: {
+      value: 0.0
+    }
+  };
+
+  let geometry = new THREE.PlaneGeometry(720, 500, 1, 1);
   //カスタムシェーダーを使う　ShaderMaterial
   let material = new THREE.ShaderMaterial({
+    uniforms: uniforms,
     vertexShader: vs,
-    fragmentShader: fs,
-    wireframe: true
+    fragmentShader: fs
+    // wireframe: true
   });
   let cube = new THREE.Mesh(geometry, material);
   scene.add(cube);
@@ -54,6 +64,7 @@ function init(vs, fs) {
     // cube.rotation.y += 0.05;
     renderer.render(scene, camera); // レンダリング
     const sec = performance.now() / 1000;
+    uniforms.uTime.value = sec; // シェーダーに渡す時間を更新
     requestAnimationFrame(tick);
   }
 }
