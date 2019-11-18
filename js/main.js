@@ -59,7 +59,7 @@ function init(vs, fs) {
 
   tick();
 
-  // 毎フレーム時に実行されるループイベントです
+  // 毎フレーム時に実行されるループイベント
   function tick() {
     // cube.rotation.y += 0.05;
     renderer.render(scene, camera); // レンダリング
