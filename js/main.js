@@ -28,28 +28,31 @@ function init(vs, fs) {
   let scene = new THREE.Scene();
 
   // カメラを作成
-  let camera = new THREE.PerspectiveCamera(45, width / height);
-  camera.position.set(0, 0, +800);
+  let camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+  camera.position.set(30, 30, +30);
+  camera.lookAt(scene.position);
 
-  // 箱を作成
-  // const geometry = new THREE.BoxGeometry(400, 400, 400);
-  // const material = new THREE.MeshNormalMaterial();
-  // const box = new THREE.Mesh(geometry, material);
-  // scene.add(box);
+  let geo = new THREE.CubeGeometry(30, 10, 10, 2, 2, 2);
+  // 頂点をダンプ
+  for (var i = 0; i < geo.vertices.length; i++) {
+    var vertex = geo.vertices[i];
+    console.log(i + ":" + vertex.x + " " + vertex.y + " " + vertex.z);
+  }
 
-  let geometry = new THREE.PlaneGeometry(720, 500, 10, 10);
+  geo.vertices[4].x += 10;
+
   //カスタムシェーダーを使う　ShaderMaterial
   let material = new THREE.ShaderMaterial({
     vertexShader: vs,
     fragmentShader: fs,
     wireframe: true
   });
-  let cube = new THREE.Mesh(geometry, material);
+  let cube = new THREE.Mesh(geo, material);
   scene.add(cube);
 
   tick();
 
-  // 毎フレーム時に実行されるループイベントです
+  // 毎フレーム時に実行されるループイベント
   function tick() {
     // cube.rotation.y += 0.05;
     renderer.render(scene, camera); // レンダリング
