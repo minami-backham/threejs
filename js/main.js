@@ -99,8 +99,8 @@ function init(vs, fs, points) {
     shift.x = points[27].x;
     shift.y = points[30].y;
     for (let i = 0; i < points.length; i++) {
-      points[i].x = points[i].x - shift.x;
-      points[i].y = -(points[i].y - shift.y);
+      points[i].x = points[i].x - shift.x + 0.06;
+      points[i].y = -(points[i].y - shift.y + 0.35);
     }
 
     // サイズを取得
@@ -112,22 +112,25 @@ function init(vs, fs, points) {
     bgImage.width = width;
     bgImage.height = bgImage.width / bgAspectRatio;
 
+    let w = bgImage.width;
+    let h = bgImage.height;
+
     const renderer = new THREE.WebGLRenderer({
       canvas: document.querySelector("#myCanvas"),
       alpha: true
     });
     // レンダラーのサイズを調整する
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(width, height);
+    renderer.setSize(w, h);
 
     // シーンを作成
     const scene = new THREE.Scene();
 
-    const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
+    const camera = new THREE.PerspectiveCamera(45, w / h, 1, 10000);
     // カメラのアスペクト比を正す
-    camera.aspect = width / height;
+    camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    camera.position.set(0, 0, +5);
+    camera.position.set(0, 0, +3);
     camera.lookAt(scene.position);
 
     let geo = new THREE.Geometry();
