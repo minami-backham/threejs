@@ -18,36 +18,37 @@ function init(vs, fs) {
   const height = 540;
 
   // レンダラーを作成
-  let renderer = new THREE.WebGLRenderer({
+  const renderer = new THREE.WebGLRenderer({
     canvas: document.querySelector("#myCanvas")
   });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(width, height);
 
   // シーンを作成
-  let scene = new THREE.Scene();
+  const scene = new THREE.Scene();
 
   // カメラを作成
-  let camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-  camera.position.set(30, 30, +30);
+  const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+  camera.position.set(30, 30, +40);
   camera.lookAt(scene.position);
 
   let geo = new THREE.CubeGeometry(30, 10, 10, 2, 2, 2);
   // 頂点をダンプ
-  for (var i = 0; i < geo.vertices.length; i++) {
-    var vertex = geo.vertices[i];
+  for (let i = 0; i < geo.vertices.length; i++) {
+    let vertex = geo.vertices[i];
     console.log(i + ":" + vertex.x + " " + vertex.y + " " + vertex.z);
   }
 
   geo.vertices[4].x += 10;
 
   //カスタムシェーダーを使う　ShaderMaterial
-  let material = new THREE.ShaderMaterial({
+  const material = new THREE.ShaderMaterial({
     vertexShader: vs,
     fragmentShader: fs,
+    antialias: true,
     wireframe: true
   });
-  let cube = new THREE.Mesh(geo, material);
+  const cube = new THREE.Mesh(geo, material);
   scene.add(cube);
 
   tick();
