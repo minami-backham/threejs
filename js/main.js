@@ -72,11 +72,35 @@ let points = [
   { x: 0.4837984144687653, y: 0.6579113602638245 }
 ];
 
-const getMidpoint = points => {
-  let newP = {};
-  // newP.xpoints[31] points
+//中点を求める
+const getMidPoint = (startPoint, endPoint) => {
+  let newPoint = {};
+  newPoint.x = (startPoint.x + endPoint.x) / 2;
+  newPoint.y = (startPoint.y + endPoint.y) / 2;
+  return newPoint;
 };
+//鼻の右端から目の下側、輪郭への中点をpointsに追加
+points.push(getMidPoint(points[31], points[27]));
+points.push(getMidPoint(points[31], points[39]));
+points.push(getMidPoint(points[31], points[40]));
+points.push(getMidPoint(points[31], points[41]));
+points.push(getMidPoint(points[31], points[36]));
+points.push(getMidPoint(points[31], points[0]));
+points.push(getMidPoint(points[31], points[1]));
+points.push(getMidPoint(points[31], points[2]));
+points.push(getMidPoint(points[31], points[3]));
+//鼻の左端から目の下側、輪郭への中点をpointsに追加
+points.push(getMidPoint(points[35], points[27]));
+points.push(getMidPoint(points[35], points[42]));
+points.push(getMidPoint(points[35], points[47]));
+points.push(getMidPoint(points[35], points[46]));
+points.push(getMidPoint(points[35], points[45]));
+points.push(getMidPoint(points[35], points[16]));
+points.push(getMidPoint(points[35], points[15]));
+points.push(getMidPoint(points[35], points[14]));
+points.push(getMidPoint(points[35], points[13]));
 
+//シェーダー
 SHADER_LOADER.load(
   // ロード完了後
   function(data) {
@@ -95,14 +119,6 @@ function init(vs, fs, points) {
   window.addEventListener("resize", onResize);
 
   function onResize() {
-    let shift = {};
-    shift.x = points[27].x;
-    shift.y = points[30].y;
-    for (let i = 0; i < points.length; i++) {
-      points[i].x = points[i].x - shift.x + 0.06;
-      points[i].y = -(points[i].y - shift.y + 0.35);
-    }
-
     // サイズを取得
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -112,12 +128,14 @@ function init(vs, fs, points) {
     bgImage.width = width;
     bgImage.height = bgImage.width / bgAspectRatio;
 
+    //window幅が変わってもアスペクト比を維持する
     let w = bgImage.width;
     let h = bgImage.height;
 
     const renderer = new THREE.WebGLRenderer({
-      canvas: document.querySelector("#myCanvas"),
-      alpha: true
+      canvas: document.querySelector("#myCanvas")
+      //描画背景を透明にする
+      // alpha: true
     });
     // レンダラーのサイズを調整する
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -127,8 +145,6 @@ function init(vs, fs, points) {
     const scene = new THREE.Scene();
 
     const camera = new THREE.PerspectiveCamera(45, w / h, 1, 10000);
-    // カメラのアスペクト比を正す
-    camera.aspect = w / h;
     camera.updateProjectionMatrix();
     camera.position.set(0, 0, +3);
     camera.lookAt(scene.position);
@@ -136,68 +152,143 @@ function init(vs, fs, points) {
     let geo = new THREE.Geometry();
     let vertices = [];
 
+    //39:右目、42:左目、30:鼻先の点が描く三角形の重心
+    const center = {};
+    center.x = (points[39].x + points[42].x + points[30].x) / 3;
+    center.y = (points[39].y + points[42].y + points[30].y) / 3;
+
     for (let i = 0; i < points.length; i++) {
+      points[i].y = -(points[i].y - center.y);
+      points[i].x = points[i].x - center.x;
       vertices.push(new THREE.Vector3(points[i].x, points[i].y, 0));
     }
 
+    //鼻の高さ
+    vertices[28].z = 0.04;
+    vertices[29].z = 0.075;
+    vertices[30].z = 0.1;
+
+    //口元の高さ
+    vertices[50].z = 0.04;
+    vertices[51].z = 0.04;
+    vertices[52].z = 0.04;
+    vertices[49].z = 0.02;
+    vertices[53].z = 0.02;
+    vertices[58].z = 0.038;
+    vertices[57].z = 0.038;
+    vertices[56].z = 0.038;
+
+    //輪郭
+    vertices[0].z = -0.1;
+    vertices[16].z = -0.1;
+    vertices[1].z = -0.08;
+    vertices[2].z = -0.08;
+    vertices[15].z = -0.08;
+    vertices[14].z = -0.08;
+    vertices[3].z = -0.07;
+    vertices[13].z = -0.07;
+    vertices[4].z = -0.06;
+    vertices[5].z = -0.06;
+    vertices[6].z = -0.06;
+    vertices[12].z = -0.06;
+    vertices[11].z = -0.06;
+    vertices[10].z = -0.06;
+    vertices[7].z = -0.05;
+    vertices[9].z = -0.05;
+
     let faces = [
       // 右目の上
-      new THREE.Face3(17, 0, 36),
-      new THREE.Face3(17, 36, 18),
-      new THREE.Face3(18, 36, 19),
-      new THREE.Face3(19, 36, 37),
-      new THREE.Face3(19, 37, 38),
-      new THREE.Face3(20, 19, 38),
-      new THREE.Face3(20, 38, 39),
-      new THREE.Face3(21, 20, 39),
+      new THREE.Face3(39, 27, 21),
+      new THREE.Face3(39, 21, 20),
+      new THREE.Face3(39, 20, 38),
+      new THREE.Face3(38, 20, 19),
+      new THREE.Face3(38, 19, 37),
+      new THREE.Face3(37, 19, 18),
+      new THREE.Face3(37, 18, 36),
+      new THREE.Face3(36, 18, 17),
+      new THREE.Face3(36, 17, 0),
       // 左目の上
-      new THREE.Face3(26, 45, 16),
-      new THREE.Face3(22, 42, 23),
-      new THREE.Face3(23, 42, 43),
-      new THREE.Face3(23, 43, 24),
-      new THREE.Face3(24, 43, 44),
-      new THREE.Face3(24, 44, 25),
-      new THREE.Face3(25, 44, 45),
-      new THREE.Face3(25, 45, 26),
+      new THREE.Face3(42, 22, 27),
+      new THREE.Face3(42, 23, 22),
+      new THREE.Face3(42, 43, 23),
+      new THREE.Face3(43, 24, 23),
+      new THREE.Face3(43, 44, 24),
+      new THREE.Face3(44, 25, 24),
+      new THREE.Face3(44, 45, 25),
+      new THREE.Face3(45, 26, 25),
+      new THREE.Face3(45, 16, 26),
       // 眉間
-      new THREE.Face3(21, 27, 22),
-      // 鼻根と目頭の間
-      new THREE.Face3(21, 39, 27),
-      new THREE.Face3(22, 27, 42),
-      // 右目
-      new THREE.Face3(36, 41, 37),
-      new THREE.Face3(37, 41, 38),
-      new THREE.Face3(38, 41, 40),
-      new THREE.Face3(38, 40, 39),
-      // 左目
-      new THREE.Face3(42, 47, 43),
-      new THREE.Face3(43, 47, 44),
-      new THREE.Face3(44, 47, 46),
-      new THREE.Face3(44, 46, 45),
-      // 右頬
-      new THREE.Face3(39, 31, 27),
-      new THREE.Face3(40, 31, 39),
-      new THREE.Face3(41, 31, 40),
-      new THREE.Face3(36, 31, 41),
-      new THREE.Face3(36, 0, 31),
-      // 左頬
-      new THREE.Face3(27, 35, 42),
-      new THREE.Face3(42, 35, 47),
-      new THREE.Face3(47, 35, 46),
-      new THREE.Face3(46, 35, 45),
-      new THREE.Face3(45, 35, 16),
+      new THREE.Face3(27, 22, 21),
+      // 右頬上半分
+      new THREE.Face3(39, 68, 27),
+      new THREE.Face3(39, 69, 68),
+      new THREE.Face3(39, 70, 69),
+      new THREE.Face3(39, 40, 70),
+      new THREE.Face3(40, 71, 70),
+      new THREE.Face3(40, 72, 71),
+      new THREE.Face3(40, 41, 72),
+      new THREE.Face3(41, 73, 72),
+      new THREE.Face3(41, 36, 73),
+      new THREE.Face3(36, 0, 73),
+      new THREE.Face3(0, 1, 73),
+      //右頬下半分
+      new THREE.Face3(68, 69, 31),
+      new THREE.Face3(69, 70, 31),
+      new THREE.Face3(70, 71, 31),
+      new THREE.Face3(71, 72, 31),
+      new THREE.Face3(72, 73, 31),
+      new THREE.Face3(73, 74, 31),
+      new THREE.Face3(74, 75, 31),
+      new THREE.Face3(75, 76, 31),
+      new THREE.Face3(76, 48, 31),
+      new THREE.Face3(73, 1, 74),
+      new THREE.Face3(1, 2, 74),
+      new THREE.Face3(74, 2, 75),
+      new THREE.Face3(2, 3, 75),
+      new THREE.Face3(75, 3, 76),
+      new THREE.Face3(76, 3, 48),
+      // 左頬上半分
+      new THREE.Face3(42, 27, 77),
+      new THREE.Face3(42, 77, 78),
+      new THREE.Face3(42, 78, 79),
+      new THREE.Face3(42, 79, 47),
+      new THREE.Face3(47, 79, 80),
+      new THREE.Face3(47, 80, 81),
+      new THREE.Face3(47, 81, 46),
+      new THREE.Face3(46, 81, 82),
+      new THREE.Face3(46, 82, 45),
+      new THREE.Face3(45, 82, 16),
+      new THREE.Face3(16, 82, 15),
+      // 左頬下半分
+      new THREE.Face3(35, 54, 85),
+      new THREE.Face3(35, 85, 84),
+      new THREE.Face3(35, 84, 83),
+      new THREE.Face3(35, 83, 82),
+      new THREE.Face3(35, 82, 81),
+      new THREE.Face3(35, 81, 80),
+      new THREE.Face3(35, 80, 79),
+      new THREE.Face3(35, 79, 78),
+      new THREE.Face3(35, 78, 77),
+      new THREE.Face3(54, 13, 85),
+      new THREE.Face3(85, 13, 84),
+      new THREE.Face3(84, 13, 14),
+      new THREE.Face3(84, 14, 83),
+      new THREE.Face3(83, 14, 15),
+      new THREE.Face3(83, 15, 82),
       // 鼻
-      new THREE.Face3(27, 30, 35),
-      new THREE.Face3(27, 31, 30),
+      new THREE.Face3(27, 68, 28),
+      new THREE.Face3(27, 28, 77),
+      new THREE.Face3(28, 68, 29),
+      new THREE.Face3(28, 29, 77),
+      new THREE.Face3(29, 68, 31),
+      new THREE.Face3(29, 35, 77),
+      new THREE.Face3(29, 31, 30),
+      new THREE.Face3(29, 30, 35),
       new THREE.Face3(30, 31, 32),
       new THREE.Face3(30, 32, 33),
       new THREE.Face3(30, 33, 34),
       new THREE.Face3(30, 34, 35),
       // 鼻下
-      new THREE.Face3(31, 0, 1),
-      new THREE.Face3(31, 1, 2),
-      new THREE.Face3(31, 2, 3),
-      new THREE.Face3(31, 3, 48),
       new THREE.Face3(31, 48, 49),
       new THREE.Face3(31, 49, 32),
       new THREE.Face3(32, 49, 50),
@@ -208,30 +299,26 @@ function init(vs, fs, points) {
       new THREE.Face3(34, 52, 53),
       new THREE.Face3(34, 53, 35),
       new THREE.Face3(35, 53, 54),
-      new THREE.Face3(35, 54, 13),
-      new THREE.Face3(35, 13, 14),
-      new THREE.Face3(35, 14, 15),
-      new THREE.Face3(35, 15, 16),
       // 上唇
-      new THREE.Face3(48, 67, 49),
-      new THREE.Face3(49, 67, 50),
-      new THREE.Face3(50, 67, 66),
-      new THREE.Face3(50, 66, 51),
-      new THREE.Face3(51, 66, 65),
-      new THREE.Face3(51, 65, 52),
-      new THREE.Face3(52, 65, 53),
-      new THREE.Face3(53, 65, 54),
+      new THREE.Face3(48, 61, 49),
+      new THREE.Face3(49, 61, 50),
+      new THREE.Face3(50, 61, 62),
+      new THREE.Face3(50, 62, 51),
+      new THREE.Face3(51, 62, 63),
+      new THREE.Face3(51, 63, 52),
+      new THREE.Face3(52, 63, 64),
+      new THREE.Face3(52, 64, 53),
+      new THREE.Face3(53, 64, 54),
       //下唇
-      new THREE.Face3(48, 60, 61),
-      new THREE.Face3(61, 60, 59),
-      new THREE.Face3(61, 59, 62),
-      new THREE.Face3(62, 59, 58),
-      new THREE.Face3(62, 58, 63),
-      new THREE.Face3(63, 58, 57),
-      new THREE.Face3(63, 57, 56),
-      new THREE.Face3(63, 56, 64),
-      new THREE.Face3(64, 56, 55),
-      new THREE.Face3(63, 55, 54),
+      new THREE.Face3(48, 60, 67),
+      new THREE.Face3(67, 60, 59),
+      new THREE.Face3(67, 59, 58),
+      new THREE.Face3(67, 58, 66),
+      new THREE.Face3(66, 58, 57),
+      new THREE.Face3(66, 57, 65),
+      new THREE.Face3(65, 57, 56),
+      new THREE.Face3(65, 56, 55),
+      new THREE.Face3(54, 65, 55),
       //口から顎
       new THREE.Face3(48, 3, 4),
       new THREE.Face3(48, 4, 5),
@@ -262,6 +349,7 @@ function init(vs, fs, points) {
       wireframe: true
     });
     const shape = new THREE.Mesh(geo, material);
+    shape.position.set(0, 0, 0.1);
     scene.add(shape);
 
     tick();
