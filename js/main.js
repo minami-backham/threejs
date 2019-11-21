@@ -133,7 +133,8 @@ function init(vs, fs, points) {
     let h = bgImage.height;
 
     const renderer = new THREE.WebGLRenderer({
-      canvas: document.querySelector("#myCanvas")
+      canvas: document.querySelector("#myCanvas"),
+      antialias: true
       //描画背景を透明にする
       // alpha: true
     });
@@ -300,15 +301,15 @@ function init(vs, fs, points) {
       new THREE.Face3(34, 53, 35),
       new THREE.Face3(35, 53, 54),
       // 上唇
-      new THREE.Face3(48, 61, 49),
-      new THREE.Face3(49, 61, 50),
+      new THREE.Face3(49, 48, 61),
+      new THREE.Face3(50, 49, 61),
       new THREE.Face3(50, 61, 62),
-      new THREE.Face3(50, 62, 51),
+      new THREE.Face3(51, 50, 62),
       new THREE.Face3(51, 62, 63),
-      new THREE.Face3(51, 63, 52),
+      new THREE.Face3(52, 51, 63),
       new THREE.Face3(52, 63, 64),
-      new THREE.Face3(52, 64, 53),
-      new THREE.Face3(53, 64, 54),
+      new THREE.Face3(53, 52, 64),
+      new THREE.Face3(54, 53, 64),
       //下唇
       new THREE.Face3(48, 60, 67),
       new THREE.Face3(67, 60, 59),
@@ -330,10 +331,10 @@ function init(vs, fs, points) {
       new THREE.Face3(58, 7, 8),
       new THREE.Face3(58, 8, 57),
       new THREE.Face3(57, 8, 9),
-      new THREE.Face3(57, 9, 10),
-      new THREE.Face3(57, 10, 56),
-      new THREE.Face3(56, 10, 11),
-      new THREE.Face3(56, 11, 55),
+      new THREE.Face3(57, 9, 56),
+      new THREE.Face3(56, 9, 10),
+      new THREE.Face3(56, 10, 55),
+      new THREE.Face3(55, 10, 11),
       new THREE.Face3(55, 11, 54),
       new THREE.Face3(54, 11, 12),
       new THREE.Face3(54, 12, 13)
@@ -342,21 +343,59 @@ function init(vs, fs, points) {
     geo.vertices = vertices;
     geo.faces = faces;
 
+    console.log(geo.faceVertexUvs[0]);
+
+    for (let i = 0, j = geo.faceVertexUvs[0].length; i < j; i++) {
+      let uv;
+      if (i % 2 === 0) {
+        uv = [
+          new THREE.Vector2(0, 0.1),
+          new THREE.Vector2(0, 0),
+          new THREE.Vector2(0.1, 0.1)
+        ];
+      } else {
+        uv = [
+          new THREE.Vector2(0, 0),
+          new THREE.Vector2(0.1, 0),
+          new THREE.Vector2(0.1, 0.1)
+        ];
+      }
+
+      geo.faceVertexUvs[0][i] = uv;
+    }
+
     //カスタムシェーダーを使う　ShaderMaterial
     const material = new THREE.ShaderMaterial({
       vertexShader: vs,
       fragmentShader: fs,
-      wireframe: true
+      transparent: true,
+      depthWrite: true,
+      side: THREE.DoubleSide,
+      alphaTest: 0.1,
+      uniforms: {
+        color: {
+          type: "c",
+          value: new THREE.Color(0xffffff)
+        },
+        uTex: {
+          type: "t",
+          value: new THREE.TextureLoader().load("../img/texture01.jpg")
+        }
+      }
+      // wireframe: true
     });
+    // material.lights = true;
+
     const shape = new THREE.Mesh(geo, material);
     shape.position.set(0, 0, 0.1);
+
     scene.add(shape);
 
     tick();
 
     // 毎フレーム時に実行されるループイベント
     function tick() {
-      // shape.rotation.y += 0.05;
+      shape.rotation.y += 0.02;
       renderer.render(scene, camera); // レンダリング
       const sec = performance.now() / 1000;
       requestAnimationFrame(tick);
